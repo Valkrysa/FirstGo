@@ -17,6 +17,8 @@ func timeout(t chan bool) {
 	t <- true
 }
 
+//Learning material used from
+//https://en.wikipedia.org/wiki/Go_(programming_language)
 func main() {
 	t := make(chan bool)
 	go timeout(t)
