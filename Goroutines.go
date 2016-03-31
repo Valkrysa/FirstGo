@@ -20,6 +20,28 @@ func sum(s []int, c chan int) {
 	c <- sum // send sum to c
 }
 
+func fibonacci(n int, c chan int) {
+	x, y := 0, 1
+	for i := 0; i < n; i++ {
+		c <- x
+		x, y = y, x+y
+	}
+	close(c)
+}
+
+func fibonacci2(c, quit chan int) {
+	x, y := 0, 1
+	for {
+		select {
+		case c <- x:
+			x, y = y, x+y
+		case <-quit:
+			fmt.Println("quit")
+			return
+		}
+	}
+}
+
 //Learning material used from
 //https://tour.golang.org/concurrency/1
 func main() {
@@ -34,7 +56,7 @@ func main() {
 	go sum(s[:len(s)/2], c)
 	go sum(s[len(s)/2:], c)
 	x, y := <-c, <-c // receive from c
-	
+
 	fmt.Println(x, y, x+y)
 
 	//Learning material used from
@@ -45,4 +67,41 @@ func main() {
 	fmt.Println(<-ch)
 	fmt.Println(<-ch)
 	//buffered channel, if you were to try to add one more item you'd error out.
+
+	//Learning material used from
+	//https://tour.golang.org/concurrency/4
+	c2 := make(chan int, 10)
+	go fibonacci(cap(c2), c2)
+	for i := range c2 {
+		fmt.Println(i)
+	}
+
+	//Learning material used from
+	//https://tour.golang.org/concurrency/5
+	c3 := make(chan int)
+	quit := make(chan int)
+	go func() {
+		for i := 0; i < 10; i++ {
+			fmt.Println(<-c3)
+		}
+		quit <- 0
+	}()
+	fibonacci2(c3, quit)
+
+	//Learning material used from
+	//https://tour.golang.org/concurrency/6
+	tick := time.Tick(100 * time.Millisecond)
+	boom := time.After(500 * time.Millisecond)
+	for {
+		select {
+		case <-tick:
+			fmt.Println("tick.")
+		case <-boom:
+			fmt.Println("BOOM!")
+			return
+		default:
+			fmt.Println("    .")
+			time.Sleep(50 * time.Millisecond)
+		}
+	}
 }
