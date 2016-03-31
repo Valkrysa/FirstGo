@@ -10,7 +10,7 @@ type rot13Reader struct {
 	r io.Reader
 }
 
-func (r rot13Reader) Read(b []byte) (int, error) {
+func (r *rot13Reader) Read(b []byte) (int, error) {
 	n, err := r.r.Read(b)
 
 	if err != nil {
